@@ -1,0 +1,56 @@
+-- NameESP Script
+-- This script creates a name display above each player's character for easy identification.
+-- It should be placed in StarterGui to ensure it runs on the client side for each player.
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- Function to create a BillboardGui with TextLabel for displaying the player's name
+local function createNameTag(player)
+    local billboardGui = Instance.new("BillboardGui")
+    local textLabel = Instance.new("TextLabel")
+
+    billboardGui.Name = "NameTag"
+    billboardGui.Adornee = player.Character:WaitForChild("Head")
+    billboardGui.Size = UDim2.new(0, 85, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.Parent = player.Character
+
+    textLabel.Parent = billboardGui
+    textLabel.BackgroundTransparency = 1
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.Text = player.Name
+    textLabel.TextColor3 = Color3.new(1, 1, 1)
+    textLabel.TextScaled = true
+end
+
+-- Function to handle the CharacterAdded event for a player
+local function onCharacterAdded(player)
+    player.CharacterAdded:Connect(function(character)
+        -- Wait for the character to fully load
+        character:WaitForChild("Head")
+        createNameTag(player)
+    end)
+end
+
+-- Connect the PlayerAdded event to handle new players joining
+Players.PlayerAdded:Connect(onCharacterAdded)
+
+-- Iterate through all existing players and attach the logic
+for _, player in Players:GetPlayers() do
+    if player.Character then
+        createNameTag(player)
+    else
+        onCharacterAdded(player)
+    end
+end
+
+-- Update the name tags in case of character respawn or rejoin
+RunService.RenderStepped:Connect(function()
+    for _, player in Players:GetPlayers() do
+        if player.Character and not player.Character:FindFirstChild("NameTag") then
+            createNameTag(player)
+        end
+    end
+end)
